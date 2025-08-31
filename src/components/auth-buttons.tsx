@@ -36,6 +36,9 @@ export function AuthButtons() {
                 <DropdownMenuContent>
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/orders">My Orders</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem disabled>{user.displayName || user.email}</DropdownMenuItem>
                     <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
                 </DropdownMenuContent>

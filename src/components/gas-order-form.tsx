@@ -13,7 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, MapPin, Flame, CreditCard, FileText, Lock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/auth-context';
+import { addOrder, OrderItem } from '@/lib/firebase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const gasOptions = [
   { id: 'gas9', label: '9kg', price: 320 },
@@ -30,23 +32,26 @@ type GasQuantities = {
 export function GasOrderForm() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const router = useRouter();
   const [address, setAddress] = useState<string>('Waiting for location...');
   const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [isAddressReadOnly, setIsAddressReadOnly] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showAuthWall, setShowAuthWall] = useState<boolean>(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   
-  const getMapSrc = (lat = 0, long = 0, zoom = 2) => {
+  const getMapSrc = () => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
         console.error("Google Maps API key is missing.");
         return `https://www.google.com/maps/embed/v1/view?center=0,0&zoom=2`;
     }
-    if (lat && long && zoom !== 2) {
-      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${long}&zoom=${zoom}`;
+    if (latitude && longitude) {
+      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${latitude},${longitude}&zoom=15`;
     }
-    return `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${lat},${long}&zoom=${zoom}`;
+    return `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=0,0&zoom=2`;
   }
-  
-  const [mapSrc, setMapSrc] = useState<string>(getMapSrc());
   
   const [entityType, setEntityType] = useState<string>('Household');
   const [companyName, setCompanyName] = useState<string>('');
@@ -66,17 +71,35 @@ export function GasOrderForm() {
         title: "Geolocation Error",
         description: "Geolocation is not supported by your browser.",
       });
+      setAddress('Geolocation not supported.');
       return;
     }
 
     setIsLocating(true);
     setAddress('Locating...');
+    setIsAddressReadOnly(true);
 
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
+      (position) => {
         const { latitude, longitude } = position.coords;
-        setMapSrc(getMapSrc(latitude, longitude, 15));
-        
+        setLatitude(latitude);
+        setLongitude(longitude);
+      },
+      () => {
+        toast({
+          variant: "destructive",
+          title: "Location Error",
+          description: "Unable to retrieve your location. Please allow location access in your browser settings.",
+        });
+        setAddress('Could not retrieve location.');
+        setIsLocating(false);
+      }
+    );
+  };
+  
+  useEffect(() => {
+    if (latitude && longitude) {
+      const fetchAddress = async () => {
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
           setAddress('API key missing');
@@ -90,26 +113,25 @@ export function GasOrderForm() {
           if (data.status === 'OK' && data.results[0]) {
             setAddress(data.results[0].formatted_address);
           } else {
-            setAddress('Could not find address.');
+            setAddress('Could not find address for your location.');
+            toast({
+              variant: "destructive",
+              title: "Geocoding Error",
+              description: data.error_message || 'An error occurred while fetching the address.',
+            });
           }
         } catch (error) {
           console.error("Error fetching address:", error);
           setAddress('Error fetching address.');
+        } finally {
+          setIsLocating(false);
+          setIsAddressReadOnly(false);
         }
-
-        setIsLocating(false);
-      },
-      () => {
-        toast({
-          variant: "destructive",
-          title: "Location Error",
-          description: "Unable to retrieve your location. Please allow location access in your browser settings.",
-        });
-        setAddress('Could not retrieve location.');
-        setIsLocating(false);
-      }
-    );
-  };
+      };
+      
+      fetchAddress();
+    }
+  }, [latitude, longitude, toast]);
 
   useEffect(() => {
     let total = 0;
@@ -141,15 +163,67 @@ export function GasOrderForm() {
     }
   };
 
-  const handlePaymentAction = () => {
+  const handlePaymentAction = async () => {
     if (!user) {
       setShowAuthWall(true);
-    } else {
-      // TODO: Implement actual order submission logic
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const items: OrderItem[] = gasSelection.map(id => {
+        const option = gasOptions.find(o => o.id === id)!;
+        return {
+            id: option.id,
+            label: option.label,
+            quantity: gasQuantities[id],
+            price: option.price
+        }
+    }).filter(item => item.quantity > 0);
+
+    if (items.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Empty Order',
+            description: 'Please select at least one gas cylinder.',
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+      await addOrder({
+        userId: user.uid,
+        address,
+        entityType,
+        companyName: entityType === 'Business' ? companyName : '',
+        items,
+        totalCost,
+        paymentMethod: paymentType,
+      });
+
       toast({
         title: 'Order Submitted',
         description: 'Your order has been submitted successfully!',
       });
+      
+      // Reset form
+      setGasSelection([]);
+      setGasQuantities(gasOptions.reduce((acc, option) => ({ ...acc, [option.id]: 0 }), {}));
+      setPaymentType('');
+      setEntityType('Household');
+      setCompanyName('');
+      
+      router.push('/orders');
+
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Order Failed',
+        description: 'There was a problem submitting your order. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -159,19 +233,21 @@ export function GasOrderForm() {
     }
   }, [user]);
 
+  const isSubmitDisabled = isSubmitting || totalCost === 0 || !paymentType;
+
   return (
     <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10">
       <div className="md:grid md:grid-cols-2">
         <div className="relative h-64 md:h-full min-h-[300px]">
-           {mapSrc && <iframe
+           <iframe
             title="Location Map"
             id="mapFrame"
             className="absolute top-0 left-0 w-full h-full border-0"
-            src={mapSrc}
+            src={getMapSrc()}
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>}
+          ></iframe>
         </div>
 
         <div className="p-6 sm:p-8">
@@ -185,8 +261,14 @@ export function GasOrderForm() {
                 {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
                 Use My Current Location
               </Button>
-              <Label htmlFor="current" className="text-xs text-muted-foreground">Current Location</Label>
-              <Input id="current" value={address} readOnly className="text-sm bg-muted/50" />
+              <Label htmlFor="current" className="text-xs text-muted-foreground">Current Location (can be edited)</Label>
+              <Input 
+                id="current" 
+                value={address}
+                onChange={(e) => setAddress(e.target.value)} 
+                readOnly={isAddressReadOnly}
+                className="text-sm bg-muted/50" 
+              />
             </div>
 
             <RadioGroup value={entityType} onValueChange={setEntityType} className="flex space-x-4">
@@ -234,7 +316,7 @@ export function GasOrderForm() {
                       <SelectValue placeholder="Qty" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[...Array(6).keys()].map(i => (
+                      {[...Array(10).keys()].map(i => (
                         <SelectItem key={i} value={i.toString()}>{i}</SelectItem>
                       ))}
                     </SelectContent>
@@ -283,13 +365,13 @@ export function GasOrderForm() {
               ) : (
                 <>
                   {paymentType === 'Card' && (
-                    <Button onClick={handlePaymentAction} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in duration-300">
-                      <CreditCard className="mr-2 h-4 w-4" /> Pay Now
+                    <Button onClick={handlePaymentAction} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in duration-300" disabled={isSubmitDisabled}>
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />} Pay Now
                     </Button>
                   )}
                   {paymentType === 'Cash' && (
-                    <Button onClick={handlePaymentAction} className="w-full animate-in fade-in duration-300">
-                      <FileText className="mr-2 h-4 w-4" /> Submit Order
+                    <Button onClick={handlePaymentAction} className="w-full animate-in fade-in duration-300" disabled={isSubmitDisabled}>
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />} Submit Order
                     </Button>
                   )}
                 </>

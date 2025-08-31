@@ -1,0 +1,131 @@
+
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { getUserOrders, Order } from '@/lib/firebase';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, Home, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+
+export default function OrdersPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const userOrders = await getUserOrders(user.uid);
+        setOrders(userOrders);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user, authLoading]);
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp?.toDate) return 'Date not available';
+    return timestamp.toDate().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-4xl mx-auto">
+        <header className="flex justify-between items-center py-4 mb-8">
+           <Button variant="outline" asChild>
+             <Link href="/">
+               <ArrowLeft className="mr-2 h-4 w-4" />
+               Back to Order
+             </Link>
+           </Button>
+          <h1 className="text-3xl font-bold text-primary">My Orders</h1>
+           <div />
+        </header>
+
+        {loading || authLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+          </div>
+        ) : !user ? (
+          <Card className="text-center p-8">
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription className="mt-2 mb-4">You must be logged in to view your orders.</CardDescription>
+            <Button asChild>
+              <Link href="/signin">Sign In</Link>
+            </Button>
+          </Card>
+        ) : orders.length === 0 ? (
+           <Card className="text-center p-8">
+            <CardTitle>No Orders Found</CardTitle>
+            <CardDescription className="mt-2 mb-4">You haven&apos;t placed any orders yet.</CardDescription>
+            <Button asChild>
+              <Link href="/">Place Your First Order</Link>
+            </Button>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {orders.map((order) => (
+              <Card key={order.id} className="overflow-hidden shadow-lg">
+                <CardHeader className="bg-muted/30">
+                  <CardTitle className="text-xl">Order #{order.id?.substring(0, 8)}</CardTitle>
+                  <CardDescription>{formatDate(order.createdAt)}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-1">Delivery Location</h4>
+                    <p className="text-muted-foreground">{order.address}</p>
+                    {order.entityType === 'Business' && order.companyName && (
+                        <p className="text-sm text-muted-foreground">Company: {order.companyName}</p>
+                    )}
+                  </div>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold mb-2">Items</h4>
+                    <ul className="space-y-2">
+                      {order.items.map(item => (
+                        <li key={item.id} className="flex justify-between">
+                          <span>{item.quantity} x {item.label}</span>
+                          <span>R{(item.quantity * item.price).toFixed(2)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                   <Separator />
+                   <div className="flex justify-between items-center">
+                     <h4 className="font-semibold">Payment Method</h4>
+                     <span className="text-muted-foreground">{order.paymentMethod}</span>
+                   </div>
+                </CardContent>
+                <CardFooter className="bg-muted/30 p-6 flex justify-end">
+                    <div className="text-2xl font-bold text-primary">
+                        Total: R{order.totalCost.toFixed(2)}
+                    </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
