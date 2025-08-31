@@ -4,12 +4,13 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy } from "firebase/firestore";
 
 const firebaseConfig = {
-    projectId: "gasfinder-34xs9",
-    appId: "1:609067270058:web:2b01d2ce8d48d696f235d3",
-    storageBucket: "gasfinder-34xs9.appspot.com",
     apiKey: "AIzaSyBFM91lpzR6Ni8A-JgIirI2hBQsV51cL-8",
     authDomain: "gasfinder-34xs9.firebaseapp.com",
-    messagingSenderId: "609067270058"
+    projectId: "gasfinder-34xs9",
+    storageBucket: "gasfinder-34xs9.appspot.com",
+    messagingSenderId: "609067270058",
+    appId: "1:609067270058:web:2b01d2ce8d48d696f235d3",
+    measurementId: "G-1SPBSR3WDS"
 };
 
 
