@@ -4,13 +4,15 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy } from "firebase/firestore";
 
 const firebaseConfig = {
-    projectId: "gasfinder-34xs9",
-    appId: "1:609067270058:web:2b01d2ce8d48d696f235d3",
-    storageBucket: "gasfinder-34xs9.firebasestorage.app",
-    apiKey: "AIzaSyBFM91lpzR6Ni8A-JgIirI2hBQsV51cL-8",
+    apiKey: "AIzaSyAhYjQ0C3s3g_nN2xGg4hL1uL4eUeU-vAs",
     authDomain: "gasfinder-34xs9.firebaseapp.com",
-    messagingSenderId: "609067270058"
+    projectId: "gasfinder-34xs9",
+    storageBucket: "gasfinder-34xs9.appspot.com",
+    messagingSenderId: "364583991820",
+    appId: "1:364583991820:web:968f933f3815c30164c489",
+    measurementId: "G-R5S8J8NE9Q"
 };
+
 
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -84,4 +86,3 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
 }
 
 export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders };
-
