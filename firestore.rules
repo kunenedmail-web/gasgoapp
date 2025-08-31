@@ -1,13 +1,12 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     match /orders/{orderId} {
-      // Allow users to create orders if they are authenticated and the order belongs to them.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Allow users to read their own orders.
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      // Disallow updates and deletes for now to preserve order history.
-      allow update, delete: if false;
+      // Allow users to create orders for themselves
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read their own orders
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
