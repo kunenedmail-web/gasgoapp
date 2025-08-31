@@ -3,13 +3,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyD2Ik3W39j774mLpFjFLiig9t-4sgk-sRI",
-    authDomain: "gasgo-466918.firebaseapp.com",
-    projectId: "gasgo-466918",
-    storageBucket: "gasgo-466918.appspot.com",
-    messagingSenderId: "153257774518",
-    appId: "1:153257774518:web:8f20f44c8182f2751e8517",
-    measurementId: "G-1SPBSR3WDS"
+    projectId: "gasfinder-34xs9",
+    appId: "1:609067270058:web:2b01d2ce8d48d696f235d3",
+    storageBucket: "gasfinder-34xs9.firebasestorage.app",
+    apiKey: "AIzaSyBFM91lpzR6Ni8A-JgIirI2hBQsV51cL-8",
+    authDomain: "gasfinder-34xs9.firebaseapp.com",
+    messagingSenderId: "609067270058"
 };
 
 // Initialize Firebase
