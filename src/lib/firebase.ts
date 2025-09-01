@@ -4,13 +4,13 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    apiKey: "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys",
+    authDomain: "gasfinder-34xs9.firebaseapp.com",
+    projectId: "gasfinder-34xs9",
+    storageBucket: "gasfinder-34xs9.appspot.com",
+    messagingSenderId: "84706598336",
+    appId: "1:84706598336:web:6c09bb1a8c9b312788e0e3",
+    measurementId: "G-8L5Z697G95"
 };
 
 
