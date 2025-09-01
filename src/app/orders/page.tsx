@@ -14,6 +14,7 @@ export default function OrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -25,10 +26,12 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
+        setError(null);
         const userOrders = await getUserOrders(user.uid);
         setOrders(userOrders);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch orders:", error);
+        setError(error.message || "An unknown error occurred while fetching orders.");
       } finally {
         setLoading(false);
       }
@@ -73,6 +76,16 @@ export default function OrdersPage() {
             <Button asChild>
               <Link href="/signin">Sign In</Link>
             </Button>
+          </Card>
+        ) : error ? (
+           <Card className="text-center p-8 bg-destructive/10">
+            <CardTitle className="text-destructive">Failed to Load Orders</CardTitle>
+            <CardDescription className="mt-2 mb-4 text-destructive">
+              There was a problem retrieving your orders from the database. This is likely due to a missing database index.
+            </CardDescription>
+             <CardContent>
+              <p className="text-sm text-muted-foreground">Please open the developer console (F12) to find a link to create the required index in Firebase.</p>
+            </CardContent>
           </Card>
         ) : orders.length === 0 ? (
            <Card className="text-center p-8">
@@ -129,3 +142,4 @@ export default function OrdersPage() {
     </main>
   );
 }
+
