@@ -10,35 +10,27 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 
 const slides = [
   {
-    image: "https://picsum.photos/1200/500",
-    alt: "Gas cylinder delivery",
-    title: "Fast & Reliable Gas Delivery",
-    description: "Get your gas cylinders delivered to your doorstep, hassle-free.",
-    hint: "delivery truck"
+    image: "https://storage.googleapis.com/altara-6d528.appspot.com/projects/2539097725916055552/files/54cc92d4-1a3b-488f-9a1f-1da55ab1c5b0.png_2024-09-06T14:48:47.375Z",
+    alt: "An orange Total gas cylinder.",
+    title: "9kg Gas Refill on R320!",
+    description: "FREE DELIVERY. Use promo code GET25%OFF. Terms and conditions apply.",
+    hint: "gas cylinder offer"
   },
   {
-    image: "https://picsum.photos/1200/500",
-    alt: "Easy online ordering",
-    title: "Order Online in Minutes",
-    description: "Simple and convenient online ordering system.",
-    hint: "person ordering online"
-  },
-  {
-    image: "https://picsum.photos/1200/500",
-    alt: "Gas for home and business",
-    title: "For Home & Business",
-    description: "We supply gas for both residential and commercial needs.",
-    hint: "restaurant kitchen"
-  },
+    image: "https://storage.googleapis.com/altara-6d528.appspot.com/projects/2539097725916055552/files/420456cc-46b0-4f96-8576-9040989f6671.png_2024-09-06T15:23:18.995Z",
+    alt: "Gas delivery for companies",
+    title: "You're a company? No Problem",
+    description: "We provide on-demand gas refill services to corporate and industrial clients across South Africa.",
+    hint: "corporate gas delivery"
+  }
 ]
 
 export function ImageCarousel() {
-  const plugin = React.useRef(
+   const plugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   )
 
@@ -60,7 +52,7 @@ export function ImageCarousel() {
                 src={slide.image}
                 alt={slide.alt}
                 fill={true}
-                objectFit="cover"
+                objectFit="contain"
                 className="rounded-lg"
                 data-ai-hint={slide.hint}
               />
