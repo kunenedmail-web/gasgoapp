@@ -237,9 +237,9 @@ export function GasOrderForm() {
   const isSubmitDisabled = isSubmitting || totalCost === 0 || !paymentType || (!user && showAuthWall);
 
   return (
-    <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10">
+    <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10 mt-12">
       <div className="md:grid md:grid-cols-2">
-        <div className="relative h-64 md:h-full min-h-[300px] mt-20">
+        <div className="relative h-64 md:h-full min-h-[300px]">
            <iframe
             title="Location Map"
             id="mapFrame"
