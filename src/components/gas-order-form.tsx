@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -233,7 +234,7 @@ export function GasOrderForm() {
     }
   }, [user]);
 
-  const isSubmitDisabled = isSubmitting || totalCost === 0 || !paymentType;
+  const isSubmitDisabled = isSubmitting || totalCost === 0 || !paymentType || (!user && showAuthWall);
 
   return (
     <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10">
@@ -347,35 +348,29 @@ export function GasOrderForm() {
           </CardContent>
           <CardFooter className="p-0 pt-6">
             <div className="w-full">
-              {showAuthWall ? (
-                 <div className="text-center w-full space-y-2 animate-in fade-in duration-300">
-                   <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                     <Lock className="h-4 w-4" />
-                     <span>Please sign in to complete your order.</span>
-                   </div>
-                   <div className="flex gap-2 justify-center">
-                     <Button asChild className="w-1/2">
-                       <Link href="/signin">Sign In</Link>
-                     </Button>
-                     <Button asChild variant="secondary" className="w-1/2">
-                       <Link href="/signup">Sign Up</Link>
-                     </Button>
-                   </div>
-                 </div>
-              ) : (
-                <>
-                  {paymentType === 'Card' && (
-                    <Button onClick={handlePaymentAction} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in duration-300" disabled={isSubmitDisabled}>
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />} Pay Now
-                    </Button>
-                  )}
-                  {paymentType === 'Cash' && (
-                    <Button onClick={handlePaymentAction} className="w-full animate-in fade-in duration-300" disabled={isSubmitDisabled}>
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />} Submit Order
-                    </Button>
-                  )}
-                </>
-              )}
+               <div className="w-full">
+                {showAuthWall ? (
+                    <div className="text-center w-full space-y-2 animate-in fade-in duration-300">
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                            <Lock className="h-4 w-4" />
+                            <span>Please sign in or create an account to continue.</span>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {paymentType === 'Card' && (
+                            <Button onClick={handlePaymentAction} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in duration-300" disabled={isSubmitDisabled}>
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />} Pay Now
+                            </Button>
+                        )}
+                        {paymentType === 'Cash' && (
+                            <Button onClick={handlePaymentAction} className="w-full animate-in fade-in duration-300" disabled={isSubmitDisabled}>
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />} Submit Order
+                            </Button>
+                        )}
+                    </>
+                )}
+            </div>
             </div>
           </CardFooter>
         </div>

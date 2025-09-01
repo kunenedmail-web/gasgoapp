@@ -46,5 +46,14 @@ export function AuthButtons() {
         );
     }
 
-    return null;
+    return (
+        <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+                <Link href="/signin">Sign In</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/signup">Sign Up</Link>
+            </Button>
+        </div>
+    );
 }
