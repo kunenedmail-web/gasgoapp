@@ -1,0 +1,14 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to only read and write their own orders
+    // Allow any authenticated user (a driver) to read all orders
+    match /orders/{orderId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false; 
+    }
+  }
+}
