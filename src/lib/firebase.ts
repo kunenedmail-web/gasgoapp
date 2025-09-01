@@ -89,4 +89,23 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
     }
 }
 
-export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders };
+const getAllOrders = async (): Promise<Order[]> => {
+    const ordersRef = collection(db, "orders");
+    // We'll likely want to filter for "active" orders in the future,
+    // but for now, we fetch all orders sorted by newest first.
+    const q = query(ordersRef, orderBy("createdAt", "desc"));
+    
+    try {
+        const querySnapshot = await getDocs(q);
+        const orders: Order[] = [];
+        querySnapshot.forEach((doc) => {
+            orders.push({ id: doc.id, ...doc.data() } as Order);
+        });
+        return orders;
+    } catch (error) {
+        console.error("Firestore query failed: ", error);
+        throw error;
+    }
+};
+
+export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders };
