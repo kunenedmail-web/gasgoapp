@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -216,11 +215,12 @@ export function GasOrderForm() {
       
       router.push('/orders');
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Order submission error:", error);
       toast({
         variant: 'destructive',
         title: 'Order Failed',
-        description: 'There was a problem submitting your order. Please try again.',
+        description: error.message || 'There was a problem submitting your order. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
