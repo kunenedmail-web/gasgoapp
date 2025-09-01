@@ -29,6 +29,8 @@ type GasQuantities = {
   [key: string]: number;
 };
 
+const GOOGLE_MAPS_API_KEY = "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys";
+
 export function GasOrderForm() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -42,7 +44,7 @@ export function GasOrderForm() {
   const [longitude, setLongitude] = useState<number | null>(null);
   
   const getMapSrc = () => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const apiKey = GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
         console.error("Google Maps API key is missing.");
         return `https://www.google.com/maps/embed/v1/view?center=0,0&zoom=2`;
@@ -100,7 +102,7 @@ export function GasOrderForm() {
   useEffect(() => {
     if (latitude && longitude) {
       const fetchAddress = async () => {
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        const apiKey = GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
           setAddress('API key missing');
           setIsLocating(false);
