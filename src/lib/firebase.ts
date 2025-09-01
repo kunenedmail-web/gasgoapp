@@ -4,7 +4,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys",
+    apiKey: "AIzaSyDjH3k21TcUsW51DUR3NHA6Zjm46Bwt7vk",
     authDomain: "gasfinder-34xs9.firebaseapp.com",
     projectId: "gasfinder-34xs9",
     storageBucket: "gasfinder-34xs9.appspot.com",

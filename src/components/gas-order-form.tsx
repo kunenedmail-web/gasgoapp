@@ -29,7 +29,7 @@ type GasQuantities = {
   [key: string]: number;
 };
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys";
+const GOOGLE_MAPS_API_KEY = "AIzaSyDjH3k21TcUsW51DUR3NHA6Zjm46Bwt7vk";
 
 export function GasOrderForm() {
   const { toast } = useToast();
