@@ -29,9 +29,14 @@ export default function OrdersPage() {
         setError(null);
         const userOrders = await getUserOrders(user.uid);
         setOrders(userOrders);
-      } catch (error: any) {
-        console.error("Failed to fetch orders:", error);
-        setError(error.message || "An unknown error occurred while fetching orders.");
+      } catch (err: any) {
+        console.error("Failed to fetch orders:", err);
+        // The most likely error is a missing index. We'll show a helpful message.
+        if (err.code === 'failed-precondition') {
+          setError('This query requires a special index. Please check the developer console (F12) for a link to create it in Firebase.');
+        } else {
+          setError(err.message || "An unknown error occurred while fetching orders.");
+        }
       } finally {
         setLoading(false);
       }
@@ -81,10 +86,10 @@ export default function OrdersPage() {
            <Card className="text-center p-8 bg-destructive/10">
             <CardTitle className="text-destructive">Failed to Load Orders</CardTitle>
             <CardDescription className="mt-2 mb-4 text-destructive">
-              There was a problem retrieving your orders from the database. This is likely due to a missing database index.
+              {error}
             </CardDescription>
              <CardContent>
-              <p className="text-sm text-muted-foreground">Please open the developer console (F12) to find a link to create the required index in Firebase.</p>
+              <p className="text-sm text-muted-foreground">If the error mentions an index, please open the developer console (F12) to find a link to create it.</p>
             </CardContent>
           </Card>
         ) : orders.length === 0 ? (
@@ -142,4 +147,3 @@ export default function OrdersPage() {
     </main>
   );
 }
-
