@@ -91,9 +91,8 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
 
 const getAllOrders = async (): Promise<Order[]> => {
     const ordersRef = collection(db, "orders");
-    // We'll likely want to filter for "active" orders in the future,
-    // but for now, we fetch all orders sorted by newest first.
-    const q = query(ordersRef, orderBy("createdAt", "desc"));
+    // The orderBy clause was removed to prevent an error caused by a missing Firestore index.
+    const q = query(ordersRef);
     
     try {
         const querySnapshot = await getDocs(q);
@@ -101,7 +100,8 @@ const getAllOrders = async (): Promise<Order[]> => {
         querySnapshot.forEach((doc) => {
             orders.push({ id: doc.id, ...doc.data() } as Order);
         });
-        return orders;
+        // Manually sort orders after fetching
+        return orders.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
     } catch (error) {
         console.error("Firestore query failed: ", error);
         throw error;
