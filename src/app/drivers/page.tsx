@@ -11,6 +11,7 @@ import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
+import { AuthButtons } from '@/components/auth-buttons';
 
 export default function DriversPage() {
   const { user, loading: authLoading } = useAuth();
@@ -79,87 +80,82 @@ export default function DriversPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background p-4 sm:p-6 md:p-8">
-      <div className="w-full max-w-6xl mx-auto">
-        <header className="flex justify-between items-center py-4 mb-8">
-           <Button variant="outline" asChild>
-             <Link href="/">
-               <ArrowLeft className="mr-2 h-4 w-4" />
-               Back to Home
-             </Link>
-           </Button>
-          <h1 className="text-3xl font-bold text-primary">Driver Dashboard</h1>
-           <div className="w-28" />
-        </header>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-           <Card className="text-center p-8 bg-destructive/10">
-            <CardTitle className="text-destructive">Failed to Load Orders</CardTitle>
-            <CardDescription className="mt-2 mb-4 text-destructive">
-              {error}
-            </CardDescription>
-             <CardContent>
-              <p className="text-sm text-muted-foreground">If the error mentions an index, please open the developer console (F12) to find a link to create it.</p>
-            </CardContent>
-          </Card>
-        ) : orders.length === 0 ? (
-           <Card className="text-center p-8">
-            <CardTitle>No Active Orders</CardTitle>
-            <CardDescription className="mt-2 mb-4">There are currently no active delivery requests.</CardDescription>
-          </Card>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {orders.map((order) => (
-              <Card key={order.id} className="overflow-hidden shadow-lg flex flex-col">
-                <CardHeader className="bg-muted/30">
-                  <CardTitle className="text-lg">Order #{order.id?.substring(0, 8)}</CardTitle>
-                  <CardDescription>{formatDate(order.createdAt)}</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3 flex-grow">
-                  <div>
-                    <h4 className="font-semibold mb-1 text-sm">Delivery Location</h4>
-                    <p className="text-xs text-muted-foreground">{order.address}</p>
-                    {order.entityType === 'Business' && order.companyName && (
-                        <p className="text-xs text-muted-foreground">Company: {order.companyName}</p>
-                    )}
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="font-semibold mb-1 text-sm">Items</h4>
-                    <ul className="space-y-1 text-xs">
-                      {order.items.map(item => (
-                        <li key={item.id} className="flex justify-between">
-                          <span>{item.quantity} x {item.label}</span>
-                          <span>R{(item.quantity * item.price).toFixed(2)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                   <Separator />
-                   <div className="flex justify-between items-center text-sm">
-                     <h4 className="font-semibold">Payment</h4>
-                     <span className="text-muted-foreground">{order.paymentMethod}</span>
-                   </div>
-                   <div className="flex justify-between items-center text-sm font-bold">
-                     <h4 className="font-semibold">Total</h4>
-                     <span className="text-primary">R{order.totalCost.toFixed(2)}</span>
-                   </div>
-                </CardContent>
-                <CardFooter className="bg-muted/30 p-2">
-                    <Button className="w-full" onClick={() => handleAcceptOrder(order.id)}>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Accept Order
-                    </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+    <div className="flex flex-col min-h-screen">
+      <header className="p-4 sm:p-6 md:p-8 flex justify-between items-center border-b">
+        <h1 className="text-2xl font-bold text-primary">Driver Dashboard</h1>
+        <AuthButtons />
+      </header>
+      <main className="flex-grow p-4 sm:p-6 md:p-8">
+        <div className="w-full max-w-6xl mx-auto">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <Card className="text-center p-8 bg-destructive/10">
+              <CardTitle className="text-destructive">Failed to Load Orders</CardTitle>
+              <CardDescription className="mt-2 mb-4 text-destructive">
+                {error}
+              </CardDescription>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">If the error mentions an index, please open the developer console (F12) to find a link to create it.</p>
+              </CardContent>
+            </Card>
+          ) : orders.length === 0 ? (
+            <Card className="text-center p-8">
+              <CardTitle>No Active Orders</CardTitle>
+              <CardDescription className="mt-2 mb-4">There are currently no active delivery requests.</CardDescription>
+            </Card>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {orders.map((order) => (
+                <Card key={order.id} className="overflow-hidden shadow-lg flex flex-col">
+                  <CardHeader className="bg-muted/30">
+                    <CardTitle className="text-lg">Order #{order.id?.substring(0, 8)}</CardTitle>
+                    <CardDescription>{formatDate(order.createdAt)}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3 flex-grow">
+                    <div>
+                      <h4 className="font-semibold mb-1 text-sm">Delivery Location</h4>
+                      <p className="text-xs text-muted-foreground">{order.address}</p>
+                      {order.entityType === 'Business' && order.companyName && (
+                          <p className="text-xs text-muted-foreground">Company: {order.companyName}</p>
+                      )}
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold mb-1 text-sm">Items</h4>
+                      <ul className="space-y-1 text-xs">
+                        {order.items.map(item => (
+                          <li key={item.id} className="flex justify-between">
+                            <span>{item.quantity} x {item.label}</span>
+                            <span>R{(item.quantity * item.price).toFixed(2)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center text-sm">
+                      <h4 className="font-semibold">Payment</h4>
+                      <span className="text-muted-foreground">{order.paymentMethod}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-bold">
+                      <h4 className="font-semibold">Total</h4>
+                      <span className="text-primary">R{order.totalCost.toFixed(2)}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-muted/30 p-2">
+                      <Button className="w-full" onClick={() => handleAcceptOrder(order.id)}>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Accept Order
+                      </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
