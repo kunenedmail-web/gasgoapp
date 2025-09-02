@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy, updateDoc, doc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys",
@@ -57,14 +57,17 @@ export interface Order {
   totalCost: number;
   paymentMethod: string;
   createdAt: Timestamp;
+  status: 'pending' | 'accepted' | 'completed';
+  driverId?: string;
 }
 
 
-const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
+const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
   try {
     await addDoc(collection(db, "orders"), {
       ...orderData,
       createdAt: serverTimestamp(),
+      status: 'pending',
     });
   } catch (error) {
     console.error("Error adding document: ", error);
@@ -91,7 +94,7 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
 
 const getAllOrders = async (): Promise<Order[]> => {
     const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, orderBy("createdAt", "desc")); 
+    const q = query(ordersRef, where("status", "==", "pending"), orderBy("createdAt", "desc")); 
     
     try {
         const querySnapshot = await getDocs(q);
@@ -106,4 +109,17 @@ const getAllOrders = async (): Promise<Order[]> => {
     }
 };
 
-export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders };
+const acceptOrder = async (orderId: string, driverId: string) => {
+    const orderRef = doc(db, "orders", orderId);
+    try {
+        await updateDoc(orderRef, {
+            status: 'accepted',
+            driverId: driverId
+        });
+    } catch (error) {
+        console.error("Error accepting order: ", error);
+        throw new Error("Could not accept order.");
+    }
+};
+
+export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders, acceptOrder };
