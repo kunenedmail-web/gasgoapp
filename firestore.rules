@@ -1,20 +1,14 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /orders/{orderId} {
-      // Allow authenticated users to list all orders (for drivers)
-      allow list: if request.auth != null;
-      
-      // Allow customers to create orders for themselves
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      
-      // Allow customers to read their own orders.
-      // Allow drivers to read orders they have accepted.
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid);
 
-      // Allow drivers to accept (update) an order.
-      allow update: if request.auth != null && request.resource.data.status == 'accepted' && resource.data.driverId == null;
+    // TEMPORARY: Make the entire orders collection public for reading.
+    // This is for debugging only and is not secure.
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid;
     }
   }
 }
