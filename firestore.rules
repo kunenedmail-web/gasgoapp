@@ -2,14 +2,17 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to only read/write their own orders
     match /orders/{orderId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    // Allow any authenticated user (drivers) to list the entire orders collection
-    match /orders {
-        allow list: if request.auth != null;
+      // Grant broad read access for collection-level queries (like listing all orders for drivers)
+      // Any authenticated user can read the list of orders.
+      allow list: if request.auth != null;
+
+      // Grant specific access for document-level operations (for customers)
+      // A user can get, update, or delete their own specific order.
+      allow get, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // A user can create an order for themselves.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
   }
 }
