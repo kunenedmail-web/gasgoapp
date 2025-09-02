@@ -29,8 +29,6 @@ type GasQuantities = {
   [key: string]: number;
 };
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDjH3k21TcUsW51DUR3NHA6Zjm46Bwt7vk";
-
 export function GasOrderForm() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -43,16 +41,17 @@ export function GasOrderForm() {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
   const getMapSrc = () => {
-    const apiKey = GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
+    if (!googleMapsApiKey) {
         console.error("Google Maps API key is missing.");
         return `https://www.google.com/maps/embed/v1/view?center=0,0&zoom=2`;
     }
     if (latitude && longitude) {
-      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${latitude},${longitude}&zoom=15`;
+      return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${latitude},${longitude}&zoom=15`;
     }
-    return `https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=0,0&zoom=2`;
+    return `https://www.google.com/maps/embed/v1/view?key=${googleMapsApiKey}&center=0,0&zoom=2`;
   }
   
   const [entityType, setEntityType] = useState<string>('Household');
@@ -102,15 +101,14 @@ export function GasOrderForm() {
   useEffect(() => {
     if (latitude && longitude) {
       const fetchAddress = async () => {
-        const apiKey = GOOGLE_MAPS_API_KEY;
-        if (!apiKey) {
+        if (!googleMapsApiKey) {
           setAddress('API key missing');
           setIsLocating(false);
           return;
         }
 
         try {
-          const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
+          const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleMapsApiKey}`);
           const data = await response.json();
           if (data.status === 'OK' && data.results[0]) {
             setAddress(data.results[0].formatted_address);
@@ -133,7 +131,7 @@ export function GasOrderForm() {
       
       fetchAddress();
     }
-  }, [latitude, longitude, toast]);
+  }, [latitude, longitude, toast, googleMapsApiKey]);
 
   useEffect(() => {
     let total = 0;
@@ -242,6 +240,7 @@ export function GasOrderForm() {
     <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10 mt-20">
       <div className="md:grid md:grid-cols-2">
         <div className="relative h-64 md:h-full min-h-[300px]">
+           { !googleMapsApiKey ? <div className="flex items-center justify-center h-full bg-muted text-destructive-foreground p-4 text-center">Google Maps API Key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your environment.</div> :
            <iframe
             title="Location Map"
             id="mapFrame"
@@ -250,7 +249,7 @@ export function GasOrderForm() {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
+          ></iframe> }
         </div>
 
         <div className="p-6 sm:p-8">
@@ -260,7 +259,7 @@ export function GasOrderForm() {
           </CardHeader>
           <CardContent className="p-0 space-y-6">
             <div className="space-y-2">
-              <Button onClick={handleGetUserLocation} disabled={isLocating} className="w-full">
+              <Button onClick={handleGetUserLocation} disabled={isLocating || !googleMapsApiKey} className="w-full">
                 {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
                 Use My Current Location
               </Button>
