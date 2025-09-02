@@ -29,7 +29,11 @@ type GasQuantities = {
   [key: string]: number;
 };
 
-export function GasOrderForm() {
+interface GasOrderFormProps {
+  apiKey?: string;
+}
+
+export function GasOrderForm({ apiKey }: GasOrderFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
@@ -40,11 +44,6 @@ export function GasOrderForm() {
   const [showAuthWall, setShowAuthWall] = useState<boolean>(false);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [apiKey, setApiKey] = useState<string | undefined>(undefined));
-
-  useEffect(() => {
-    setApiKey(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
-  }, []);
 
   const getMapSrc = () => {
     if (!apiKey) {
@@ -236,7 +235,7 @@ export function GasOrderForm() {
     <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10 mt-20">
       <div className="md:grid md:grid-cols-2">
         <div className="relative h-64 md:h-full min-h-[300px]">
-           { !apiKey ? <div className="flex items-center justify-center h-full bg-muted text-destructive-foreground p-4 text-center">Google Maps API Key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.</div> :
+           { !apiKey ? <div className="flex items-center justify-center h-full bg-muted text-destructive-foreground p-4 text-center">Google Maps API Key is not configured. Please check your environment variables.</div> :
            <iframe
             title="Location Map"
             id="mapFrame"

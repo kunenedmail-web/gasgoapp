@@ -31,9 +31,6 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  publicRuntimeConfig: {
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  },
 };
 
 export default nextConfig;
