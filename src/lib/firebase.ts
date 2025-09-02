@@ -91,8 +91,7 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
 
 const getAllOrders = async (): Promise<Order[]> => {
     const ordersRef = collection(db, "orders");
-    // Removed orderBy to prevent missing index error
-    const q = query(ordersRef); 
+    const q = query(ordersRef, orderBy("createdAt", "desc")); 
     
     try {
         const querySnapshot = await getDocs(q);

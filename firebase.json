@@ -1,5 +1,7 @@
-
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "source": ".",
     "ignore": [
@@ -11,8 +13,5 @@
       "id": "nextjs",
       "region": "us-central1"
     }
-  },
-  "firestore": {
-    "rules": "firestore.rules"
   }
 }
