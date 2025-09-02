@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { signInWithEmail } from '@/lib/firebase';
+import { signInWithEmail, sendPasswordReset } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,6 +55,34 @@ export default function DriverLoginPage() {
       setLoading(false);
     }
   };
+  
+  const handlePasswordReset = async () => {
+    const email = form.getValues('email');
+    if (!email) {
+      form.setError('email', { type: 'manual', message: 'Please enter your email address to reset password.' });
+      return;
+    }
+    const emailValidation = z.string().email().safeParse(email);
+    if(!emailValidation.success) {
+      form.setError('email', { type: 'manual', message: 'Please enter a valid email address.' });
+      return;
+    }
+
+    try {
+      await sendPasswordReset(email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: 'Check your inbox for a link to reset your password.',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Reset Failed',
+        description: error.message || 'An unknown error occurred.',
+      });
+    }
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -93,7 +121,12 @@ export default function DriverLoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <div className="flex justify-between items-center">
+                        <FormLabel>Password</FormLabel>
+                        <button type="button" onClick={handlePasswordReset} className="text-sm font-medium text-primary hover:underline">
+                          Forgot Password?
+                        </button>
+                      </div>
                       <div className="relative">
                         <FormControl>
                           <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
@@ -102,6 +135,7 @@ export default function DriverLoginPage() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute inset-y-0 right-0 flex items-center pr-3"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
                         >
                           {showPassword ? (
                             <EyeOff className="h-5 w-5 text-gray-400" />

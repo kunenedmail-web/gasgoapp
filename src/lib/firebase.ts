@@ -1,16 +1,16 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy, updateDoc, doc } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys",
-    authDomain: "gasfinder-34xs9.firebaseapp.com",
-    projectId: "gasfinder-34xs9",
-    storageBucket: "gasfinder-34xs9.appspot.com",
-    messagingSenderId: "84706598336",
-    appId: "1:84706598336:web:6c09bb1a8c9b312788e0e3",
-    measurementId: "G-8L5Z697G95"
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 
@@ -39,6 +39,15 @@ const logout = async () => {
         console.error("Error signing out", error);
     }
 }
+
+const sendPasswordReset = async (email: string) => {
+    try {
+        await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+        console.error("Error sending password reset email", error);
+        throw error;
+    }
+};
 
 export interface OrderItem {
   id: string;
@@ -122,4 +131,4 @@ const acceptOrder = async (orderId: string, driverId: string) => {
     }
 };
 
-export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders, acceptOrder };
+export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders, acceptOrder, sendPasswordReset };
