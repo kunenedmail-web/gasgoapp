@@ -57,8 +57,8 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-       <header className="p-4 sm:p-6 md:p-8 flex justify-between items-center border-b">
+    <div className="flex flex-col min-h-screen bg-muted/10">
+       <header className="p-4 sm:p-6 md:p-8 flex justify-between items-center border-b bg-background">
         <Button variant="outline" asChild>
           <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -66,7 +66,9 @@ export default function OrdersPage() {
           </Link>
         </Button>
         <h1 className="text-2xl font-bold text-primary">My Orders</h1>
-        <AuthButtons />
+        <div className="flex-shrink-0">
+          <AuthButtons />
+        </div>
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8">
         <div className="w-full max-w-4xl mx-auto">

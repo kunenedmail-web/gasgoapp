@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy, updateDoc, doc } from "firebase/firestore";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from "firebase/auth";
+import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp, orderBy, doc, setDoc, getDoc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys",
@@ -19,18 +19,72 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const signUpWithEmail = async (name: string, surname: string, email: string, password: string): Promise<User> => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(userCredential.user, {
-    displayName: `${name} ${surname}`
-  });
-  return userCredential.user;
+// Generic function to get user role
+const getUserRole = async (userId: string): Promise<string | null> => {
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+        return userDoc.data().role || null;
+    }
+    return null;
 }
 
-const signInWithEmail = async (email: string, password: string): Promise<User> => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+// Sign up for customers
+const signUpWithEmail = async (name: string, surname: string, email: string, password: string): Promise<User> => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+  await updateProfile(user, {
+    displayName: `${name} ${surname}`
+  });
+  // Add user to the 'users' collection with a role
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    displayName: `${name} ${surname}`,
+    role: 'customer'
+  });
+  return user;
 }
+
+// Sign up for drivers
+const signUpAsDriver = async (name: string, surname: string, email: string, password: string): Promise<User> => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+  await updateProfile(user, {
+    displayName: `${name} ${surname}`
+  });
+  // Add user to the 'users' collection with a role
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    displayName: `${name} ${surname}`,
+    role: 'driver'
+  });
+  return user;
+};
+
+
+// Sign in for customers
+const signInAsCustomer = async (email: string, password: string): Promise<User> => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const role = await getUserRole(userCredential.user.uid);
+    if (role !== 'customer') {
+        await signOut(auth);
+        throw new Error("This account is not a customer account.");
+    }
+    return userCredential.user;
+};
+
+// Sign in for drivers
+const signInAsDriver = async (email: string, password: string): Promise<User> => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const role = await getUserRole(userCredential.user.uid);
+    if (role !== 'driver') {
+        await signOut(auth);
+        throw new Error("Access denied. Not a driver account.");
+    }
+    return userCredential.user;
+};
 
 const logout = async () => {
     try {
@@ -39,15 +93,6 @@ const logout = async () => {
         console.error("Error signing out", error);
     }
 }
-
-const sendPasswordReset = async (email: string) => {
-    try {
-        await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-        console.error("Error sending password reset email", error);
-        throw error;
-    }
-};
 
 export interface OrderItem {
   id: string;
@@ -66,17 +111,14 @@ export interface Order {
   totalCost: number;
   paymentMethod: string;
   createdAt: Timestamp;
-  status: 'pending' | 'accepted' | 'completed';
-  driverId?: string;
 }
 
 
-const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
+const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
   try {
     await addDoc(collection(db, "orders"), {
       ...orderData,
       createdAt: serverTimestamp(),
-      status: 'pending',
     });
   } catch (error) {
     console.error("Error adding document: ", error);
@@ -103,7 +145,7 @@ const getUserOrders = async (userId: string): Promise<Order[]> => {
 
 const getAllOrders = async (): Promise<Order[]> => {
     const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, where("status", "==", "pending"), orderBy("createdAt", "desc")); 
+    const q = query(ordersRef, orderBy("createdAt", "desc")); 
     
     try {
         const querySnapshot = await getDocs(q);
@@ -118,17 +160,4 @@ const getAllOrders = async (): Promise<Order[]> => {
     }
 };
 
-const acceptOrder = async (orderId: string, driverId: string) => {
-    const orderRef = doc(db, "orders", orderId);
-    try {
-        await updateDoc(orderRef, {
-            status: 'accepted',
-            driverId: driverId
-        });
-    } catch (error) {
-        console.error("Error accepting order: ", error);
-        throw new Error("Could not accept order.");
-    }
-};
-
-export { auth, db, signUpWithEmail, signInWithEmail, logout, addOrder, getUserOrders, getAllOrders, acceptOrder, sendPasswordReset };
+export { auth, db, signUpWithEmail, signUpAsDriver, signInAsCustomer, signInAsDriver, logout, addOrder, getUserOrders, getAllOrders };

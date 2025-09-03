@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { getAllOrders, Order, acceptOrder } from '@/lib/firebase';
+import { getAllOrders, Order } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -21,57 +21,43 @@ export default function DriversPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const allOrders = await getAllOrders();
-      setOrders(allOrders);
-    } catch (err: any) {
-      console.error("Failed to fetch orders:", err);
-      if (err.code === 'failed-precondition') {
-        setError('This query requires a special index. Please check the developer console (F12) for a link to create it in Firebase.');
-      } else if (err.code === 'permission-denied') {
-        setError('You do not have permission to view these orders. Please contact an administrator.');
-      }
-      else {
-        setError(err.message || "An unknown error occurred while fetching orders.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (authLoading) {
       return; // Wait until auth state is determined
     }
     if (!user) {
-      router.push('/drivers/login'); // Redirect to driver login if not authenticated
+      router.push('/drivers/signin'); // Redirect to driver login if not authenticated
       return;
     }
+
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const allOrders = await getAllOrders();
+        setOrders(allOrders);
+      } catch (err: any) {
+        console.error("Failed to fetch orders:", err);
+        if (err.code === 'failed-precondition') {
+          setError('This query requires a special index. Please check the developer console (F12) for a link to create it in Firebase.');
+        } else {
+          setError(err.message || "An unknown error occurred while fetching orders.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchOrders();
   }, [user, authLoading, router]);
 
-  const handleAcceptOrder = async (orderId?: string) => {
-    if (!orderId || !user) return;
-
-    try {
-      await acceptOrder(orderId, user.uid);
-      toast({
-        title: 'Order Accepted',
-        description: `You have accepted order #${orderId?.substring(0, 8)}.`,
-      });
-      // Refresh the list of orders to remove the accepted one
-      fetchOrders();
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Failed to Accept',
-        description: error.message || 'There was an issue accepting the order.',
-      });
-    }
+  const handleAcceptOrder = (orderId?: string) => {
+    // TODO: Implement logic to assign the order to the driver
+    console.log("Accepted order:", orderId);
+    toast({
+      title: 'Order Accepted',
+      description: `You have accepted order #${orderId?.substring(0, 8)}.`,
+    });
   };
 
   const formatDate = (timestamp: any) => {
@@ -85,7 +71,7 @@ export default function DriversPage() {
     });
   };
 
-  if (authLoading || (!user && !error)) {
+  if (authLoading || !user) {
     return (
         <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -118,7 +104,7 @@ export default function DriversPage() {
           ) : orders.length === 0 ? (
             <Card className="text-center p-8">
               <CardTitle>No Active Orders</CardTitle>
-              <CardDescription className="mt-2 mb-4">There are currently no new delivery requests.</CardDescription>
+              <CardDescription className="mt-2 mb-4">There are currently no active delivery requests.</CardDescription>
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

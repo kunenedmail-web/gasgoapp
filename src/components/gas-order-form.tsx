@@ -29,11 +29,9 @@ type GasQuantities = {
   [key: string]: number;
 };
 
-interface GasOrderFormProps {
-  apiKey?: string;
-}
+const GOOGLE_MAPS_API_KEY = "AIzaSyAJPu4f5oOsfxbxk0NaYAKhcgZrq58kGys";
 
-export function GasOrderForm({ apiKey }: GasOrderFormProps) {
+export function GasOrderForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
@@ -44,9 +42,11 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
   const [showAuthWall, setShowAuthWall] = useState<boolean>(false);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-
+  
   const getMapSrc = () => {
+    const apiKey = GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
+        console.error("Google Maps API key is missing.");
         return `https://www.google.com/maps/embed/v1/view?center=0,0&zoom=2`;
     }
     if (latitude && longitude) {
@@ -100,8 +100,15 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
   };
   
   useEffect(() => {
-    if (latitude && longitude && apiKey) {
+    if (latitude && longitude) {
       const fetchAddress = async () => {
+        const apiKey = GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+          setAddress('API key missing');
+          setIsLocating(false);
+          return;
+        }
+
         try {
           const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`);
           const data = await response.json();
@@ -126,7 +133,7 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
       
       fetchAddress();
     }
-  }, [latitude, longitude, apiKey, toast]);
+  }, [latitude, longitude, toast]);
 
   useEffect(() => {
     let total = 0;
@@ -235,7 +242,6 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
     <Card className="w-full shadow-2xl overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border-primary/10 mt-20">
       <div className="md:grid md:grid-cols-2">
         <div className="relative h-64 md:h-full min-h-[300px]">
-           { !apiKey ? <div className="flex items-center justify-center h-full bg-muted text-destructive-foreground p-4 text-center">Google Maps API Key is not configured. Please check your environment variables.</div> :
            <iframe
             title="Location Map"
             id="mapFrame"
@@ -244,7 +250,7 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-          ></iframe> }
+          ></iframe>
         </div>
 
         <div className="p-6 sm:p-8">
@@ -254,7 +260,7 @@ export function GasOrderForm({ apiKey }: GasOrderFormProps) {
           </CardHeader>
           <CardContent className="p-0 space-y-6">
             <div className="space-y-2">
-              <Button onClick={handleGetUserLocation} disabled={isLocating || !apiKey} className="w-full">
+              <Button onClick={handleGetUserLocation} disabled={isLocating} className="w-full">
                 {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
                 Use My Current Location
               </Button>
