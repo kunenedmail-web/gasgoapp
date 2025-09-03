@@ -2,32 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can only read their own user data.
-    // New user documents are created by a Cloud Function (or admin) and cannot be created by clients.
     match /users/{userId} {
-      allow read: if request.auth.uid == userId;
+      allow get: if request.auth.uid == userId;
       allow create: if request.auth.uid == userId;
-      allow write: if false; // Disallow updates from client
-      allow delete: if false; // Disallow deletes from client
+      allow update, delete: if request.auth.uid == userId;
     }
-    
-    // Helper function to check user role from the 'users' collection
-    function getRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
-    }
-
-    match /orders/{orderId} {
-      // CUSTOMERS: Can create their own orders and read only their own orders.
-      allow create: if request.auth.uid == request.resource.data.userId && getRole(request.auth.uid) == 'customer';
-      allow read: if getRole(request.auth.uid) == 'customer' && resource.data.userId == request.auth.uid;
-
-      // DRIVERS: Can read all orders. Cannot create, update, or delete.
-      allow list: if getRole(request.auth.uid) == 'driver';
-      allow get: if getRole(request.auth.uid) == 'driver';
-      
-      // No one can update or delete orders from the client-side for now.
-      allow update, delete: if false;
+    match /orders/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
