@@ -42,14 +42,14 @@ export default function DriverLoginPage() {
       await signInAsDriver(data.email, data.password);
       toast({
         title: 'Signed In',
-        description: 'You have been successfully signed in.',
+        description: 'You have been successfully signed in as a driver.',
       });
       router.push('/drivers');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Sign In Failed',
-        description: error.message || "Invalid email or password. Please try again.",
+        description: error.message || "Invalid credentials or not a driver account.",
       });
     } finally {
       setLoading(false);
@@ -120,11 +120,8 @@ export default function DriverLoginPage() {
                 </Button>
               </form>
             </Form>
-             <div className="mt-4 text-center text-sm">
-                New driver?{' '}
-                <Link href="/drivers/signup" className="underline">
-                  Sign up
-                </Link>
+             <div className="mt-4 text-center text-sm text-muted-foreground">
+                Driver accounts are created by administrators.
               </div>
           </CardContent>
         </Card>

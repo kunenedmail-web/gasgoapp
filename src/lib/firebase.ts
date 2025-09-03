@@ -46,29 +46,11 @@ const signUpWithEmail = async (name: string, surname: string, email: string, pas
   return user;
 }
 
-// Sign up for drivers
-const signUpAsDriver = async (name: string, surname: string, email: string, password: string): Promise<User> => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-  await updateProfile(user, {
-    displayName: `${name} ${surname}`
-  });
-  // Add user to the 'users' collection with a role
-  await setDoc(doc(db, "users", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    displayName: `${name} ${surname}`,
-    role: 'driver'
-  });
-  return user;
-};
-
-
 // Sign in for customers
 const signInAsCustomer = async (email: string, password: string): Promise<User> => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const role = await getUserRole(userCredential.user.uid);
-    if (role !== 'customer') {
+    if (role && role !== 'customer') {
         await signOut(auth);
         throw new Error("This account is not a customer account.");
     }
@@ -81,7 +63,7 @@ const signInAsDriver = async (email: string, password: string): Promise<User> =>
     const role = await getUserRole(userCredential.user.uid);
     if (role !== 'driver') {
         await signOut(auth);
-        throw new Error("Access denied. Not a driver account.");
+        throw new Error("Access denied. You do not have driver permissions.");
     }
     return userCredential.user;
 };
@@ -160,4 +142,4 @@ const getAllOrders = async (): Promise<Order[]> => {
     }
 };
 
-export { auth, db, signUpWithEmail, signUpAsDriver, signInAsCustomer, signInAsDriver, logout, addOrder, getUserOrders, getAllOrders };
+export { auth, db, signUpWithEmail, signInAsCustomer, signInAsDriver, logout, addOrder, getUserOrders, getAllOrders };
